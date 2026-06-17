@@ -1,0 +1,649 @@
+{
+  "$schema_version": 1,
+  "description": "Synthetic activity dataset for Context Handoff Protocol demos. Timestamps are expressed as `days_ago` (float, relative to load time) so the dataset always appears fresh regardless of when it's loaded.",
+  "users": [
+    {
+      "id": "priya",
+      "name": "Priya Nair",
+      "email": "priya@company.com",
+      "avatar": "PN",
+      "role": "Senior Backend Engineer"
+    },
+    {
+      "id": "alex",
+      "name": "Alex Chen",
+      "email": "alex@company.com",
+      "avatar": "AC",
+      "role": "Backend Engineer — Payments"
+    },
+    {
+      "id": "maria",
+      "name": "Maria Santos",
+      "email": "maria@company.com",
+      "avatar": "MS",
+      "role": "Product Designer"
+    },
+    {
+      "id": "jordan",
+      "name": "Jordan Lee",
+      "email": "jordan@company.com",
+      "avatar": "JL",
+      "role": "Product Manager"
+    }
+  ],
+  "events": [
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya → sanjay: I think we should switch to a 30-second TTL cache for token validation instead of per-request checks. Saw this pattern work well at my last company — should cut auth latency significantly.",
+      "days_ago": 4.3,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend",
+        "thread": "auth-ttl"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "github",
+      "content": "PR #441 opened by priya: 'feat: rate-limit token refresh via TTL cache' — Implements a 30s Redis TTL for JWT validation, replacing per-request DB lookups. Reduces auth latency by ~70ms. Status: open, awaiting review.",
+      "days_ago": 3.8,
+      "url": "https://github.com/org/backend/pull/441",
+      "metadata": {
+        "type": "pull_request",
+        "state": "open",
+        "pr_number": 441,
+        "reviewer": "sanjay"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "notion",
+      "content": "Auth Rate Limiting Design Doc (edited by priya): Decision recorded — move from per-request JWT verification to a Redis-backed TTL cache (30s). Rationale: eliminates a DB round-trip on every API call. Open question flagged: logout invalidation strategy still needs a decision from Sanjay.",
+      "days_ago": 3.5,
+      "url": "https://notion.so/auth-ratelimit-design",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "sanjay → priya: Makes sense overall. One concern though — what happens on logout? A TTL means a logged-out token could stay valid for up to 30 seconds. Is that acceptable for our security posture?",
+      "days_ago": 2.4,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend",
+        "thread": "auth-ttl"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya → sanjay: Good catch, that's exactly the open question. We're stuck between invalidating the cache entry immediately on logout (extra Redis write) vs accepting the 30s window. Haven't decided yet — this is currently blocking the PR merge.",
+      "days_ago": 2.2,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend",
+        "thread": "auth-ttl"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "github",
+      "content": "Review comment by sanjay on PR #441: 'Blocking on the logout invalidation decision above before I can approve. Can we get a decision by end of week?'",
+      "days_ago": 1.6,
+      "url": "https://github.com/org/backend/pull/441#discussion_r1",
+      "metadata": {
+        "type": "review_comment",
+        "pr_number": 441
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya in #eng-backend: Quick incident note — the auth DB was hitting 400 rps during peak yesterday, which is the root cause we're fixing with PR #441. Once the logout question is resolved, this should ship immediately.",
+      "days_ago": 5.0,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "email",
+      "content": "From: ramesh@company.com To: priya@company.com — Hi Priya, can you do a quick audit of our Lambda cold-start costs? We had a billing spike last month and I suspect it's tied to the deploy cadence change we made in April. Would love your read on this by end of week.",
+      "days_ago": 7.2,
+      "url": "",
+      "metadata": {
+        "from": "ramesh",
+        "subject": "Q3 Lambda cost review"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "notion",
+      "content": "Q3 Infra Cost Audit (draft, ~60% complete, edited by priya): Pulled CloudWatch invocation data for the last 90 days. Cold-start frequency is at 18% of total requests, up from 11% in March. Hypothesis: the increased deploy cadence introduced in April is shortening function lifetime and causing more cold starts. Still need: a proper correlation analysis between deploy timestamps and cold-start spikes.",
+      "days_ago": 4.6,
+      "url": "https://notion.so/infra-cost-audit-q3",
+      "metadata": {
+        "type": "page_edit",
+        "completion": 60
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya → ramesh: Update on the Lambda audit — I've pulled the CloudWatch data and it's looking like the April deploy cadence change is the likely culprit. Cold starts are up 23% since then. Still working on the correlation analysis, draft is in Notion.",
+      "days_ago": 4.0,
+      "url": "",
+      "metadata": {
+        "channel": "dm-priya-ramesh"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "email",
+      "content": "From: priya@company.com To: ramesh@company.com — Ramesh, quick update: initial data pull is done and the April correlation looks strong. I want to finish the full correlation chart before sending you a final recommendation — should have it done by early next week.",
+      "days_ago": 3.1,
+      "url": "",
+      "metadata": {
+        "from": "priya",
+        "subject": "Re: Q3 Lambda cost review"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya → aditya: Hey, welcome to the team! I'll help get you set up over the next couple of days. First step is database access — I'll request staging permissions for you today.",
+      "days_ago": 7.0,
+      "url": "",
+      "metadata": {
+        "channel": "dm-priya-aditya"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya in #eng-infra: Requesting staging DB read access for @aditya — new backend engineer joining the team this week. Manager approval: @ramesh.",
+      "days_ago": 6.4,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-infra"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "infra-bot: Staging database access has been granted for user aditya@company.com. Access level: read-only. Effective immediately.",
+      "days_ago": 5.8,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-infra",
+        "type": "bot"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "email",
+      "content": "From: priya@company.com To: data-team@company.com — Hi team, requesting production read-only access for our new engineer Aditya. He needs access to the analytics tables for the project he's ramping up on. Manager approval: Ramesh. Could you let me know the process for this?",
+      "days_ago": 4.2,
+      "url": "",
+      "metadata": {
+        "from": "priya",
+        "subject": "Prod DB access request — Aditya",
+        "to": "data-team"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya → aditya: Good news — staging access is live, you should be able to connect now! Production access is still pending though, I emailed the data team a few days ago but haven't heard back yet.",
+      "days_ago": 3.6,
+      "url": "",
+      "metadata": {
+        "channel": "dm-priya-aditya"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya in #eng-backend: Heads up — planning to migrate our primary database from Postgres 14 to 16 next week. I'll share a migration runbook shortly. Should be a low-risk upgrade with some nice performance wins on JSONB queries.",
+      "days_ago": 21.0,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "notion",
+      "content": "Postgres 16 Migration Runbook (edited by priya): Step-by-step rollback-safe migration plan. Includes pre-migration backup checklist, maintenance window scheduling, and post-migration verification queries.",
+      "days_ago": 19.5,
+      "url": "https://notion.so/postgres-16-migration-runbook",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "github",
+      "content": "PR #410 merged by priya: 'chore: bump postgres to v16, update connection pooling config' — All CI checks passed. Deployed to staging successfully, production migration completed during the scheduled maintenance window.",
+      "days_ago": 16.0,
+      "url": "https://github.com/org/backend/pull/410",
+      "metadata": {
+        "type": "pull_request",
+        "state": "merged",
+        "pr_number": 410
+      }
+    },
+    {
+      "user_id": "priya",
+      "source": "slack",
+      "content": "priya in #eng-backend: Postgres 16 migration is complete — production upgraded successfully during last night's maintenance window, zero downtime, all health checks green. JSONB query performance is noticeably faster already. Closing this out.",
+      "days_ago": 15.0,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-backend"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "github",
+      "content": "PR #388 opened by alex: 'refactor: migrate payment service to async handlers' — Large refactor of the payments module to reduce timeout errors under load. Review requested from @priya and @rohan. Status: open.",
+      "days_ago": 4.5,
+      "url": "https://github.com/org/payments/pull/388",
+      "metadata": {
+        "type": "pull_request",
+        "state": "open",
+        "pr_number": 388
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "notion",
+      "content": "Payment Service Migration Plan (edited by alex): Phase 1 complete — async handlers deployed to staging, latency improved by 40%. Phase 2 needs a decision: webhook retry policy. Two options — exponential backoff (preferred, simpler) vs a dead-letter queue (more robust, more infra). Decision needed from Rohan before Phase 2 can proceed.",
+      "days_ago": 3.8,
+      "url": "https://notion.so/payments-migration-plan",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "alex in #product: Payment service migration update — async handlers are live on staging and looking solid. We're blocked on finalizing the webhook retry policy before we can move to Phase 2 and ship to production.",
+      "days_ago": 3.4,
+      "url": "",
+      "metadata": {
+        "channel": "#product"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "alex → rohan: Quick question on the payments refactor — any preference between exponential backoff and a dead-letter queue for failed webhooks? I lean toward backoff for simplicity given our current volume, but wanted your input before deciding.",
+      "days_ago": 2.6,
+      "url": "",
+      "metadata": {
+        "channel": "dm-alex-rohan"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "github",
+      "content": "Review comment on PR #388 by rohan: 'Looks clean overall. I'd go with exponential backoff capped at 4 retries — a DLQ feels like overkill for our current webhook volume. Approving once that's wired in.'",
+      "days_ago": 1.3,
+      "url": "https://github.com/org/payments/pull/388#discussion_r2",
+      "metadata": {
+        "type": "review_comment",
+        "pr_number": 388
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "email",
+      "content": "From: partnerops@bigretailco.com To: alex@company.com — Hi Alex, as our integration volume grows we're starting to hit your API's rate limits during peak hours (around 2-4pm). Could you look into increasing our quota? This is becoming a blocker for our holiday season prep.",
+      "days_ago": 6.0,
+      "url": "",
+      "metadata": {
+        "from": "BigRetailCo",
+        "subject": "API rate limit — BigRetailCo integration"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "alex → infra-team: BigRetailCo (one of our larger partners) is hitting our API rate limits during peak hours and it's blocking their holiday prep. What's the process for granting a higher quota tier to a specific partner?",
+      "days_ago": 5.2,
+      "url": "",
+      "metadata": {
+        "channel": "#infra-requests"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "email",
+      "content": "From: alex@company.com To: cloud-support@provider.com — Submitting a request to increase our API gateway quota for partner tier 'enterprise-2' from 500 rps to 1500 rps. This is needed to support a growing integration partner ahead of their seasonal traffic spike.",
+      "days_ago": 4.1,
+      "url": "",
+      "metadata": {
+        "from": "alex",
+        "subject": "Quota increase request — enterprise-2 tier"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "infra-team → alex: Got your quota request — a tier upgrade like this needs VP sign-off since it affects our shared rate-limiting pool. I've forwarded it for approval, still pending as of today. Will ping you once it's approved.",
+      "days_ago": 2.3,
+      "url": "",
+      "metadata": {
+        "channel": "#infra-requests"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "alex in #on-call: This week's on-call summary — 3 minor incidents, all resolved within SLA. No major outages. Escalation runbook held up well for the payments-latency alert on Tuesday.",
+      "days_ago": 15.0,
+      "url": "",
+      "metadata": {
+        "channel": "#on-call"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "notion",
+      "content": "On-Call Runbook (edited by alex): Updated escalation contacts for the payments and auth services. Added a new troubleshooting section for the Redis cache timeout alert that fired twice this week.",
+      "days_ago": 14.2,
+      "url": "https://notion.so/on-call-runbook",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "alex",
+      "source": "slack",
+      "content": "alex → on-call-next: Handoff complete for this week's rotation — runbook is up to date, no open incidents, nothing pending. You're all set for the week ahead!",
+      "days_ago": 10.5,
+      "url": "",
+      "metadata": {
+        "channel": "dm-alex-oncall-next"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "notion",
+      "content": "Onboarding Flow Redesign v3 (edited by maria): Updated the Figma flow based on last round of feedback — simplified from 6 steps to 4. Open comments on step 3 (account verification) still need resolution before this can move to development.",
+      "days_ago": 5.4,
+      "url": "https://notion.so/onboarding-redesign-v3",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "maria → jordan: For the onboarding redesign, I really need the latest user research on where people are dropping off in the current flow — especially around step 3. Do we have that data yet?",
+      "days_ago": 4.6,
+      "url": "",
+      "metadata": {
+        "channel": "dm-maria-jordan"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "jordan → maria: The research team is still analyzing the drop-off data, ETA is end of next week. I know that's frustrating — I'll flag it as a priority for them.",
+      "days_ago": 3.9,
+      "url": "",
+      "metadata": {
+        "channel": "dm-maria-jordan"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "notion",
+      "content": "Onboarding Flow Redesign v3 — Comment thread on Step 3 (account verification): 4 open questions flagged by the team — should email verification be mandatory before proceeding? Should we offer a 'skip for now' option? Awaiting research data before finalizing.",
+      "days_ago": 2.8,
+      "url": "https://notion.so/onboarding-redesign-v3#step3-comments",
+      "metadata": {
+        "type": "comment"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "maria in #design: Status update — the onboarding redesign is currently blocked on user research data for the drop-off analysis. Can't finalize step 3 until that lands. Will pick this back up as soon as it's available.",
+      "days_ago": 1.7,
+      "url": "",
+      "metadata": {
+        "channel": "#design"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "notion",
+      "content": "Design Tokens v2 (edited by maria): New color palette finalized — includes updated semantic tokens for success/warning/error states and a refreshed neutral scale for better dark-mode contrast.",
+      "days_ago": 8.3,
+      "url": "https://notion.so/design-tokens-v2",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "maria in #eng-frontend: Heads up — rolling out the new design token palette (v2). I've documented all the mappings from old tokens to new ones in Notion. Planning a phased rollout starting with the marketing site.",
+      "days_ago": 6.5,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-frontend"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "github",
+      "content": "PR #205 opened by maria (frontend repo): 'style: migrate to design-tokens-v2' — Updates tokens.css with the new semantic color palette. Marketing site components updated first as a pilot.",
+      "days_ago": 4.7,
+      "url": "https://github.com/org/frontend/pull/205",
+      "metadata": {
+        "type": "pull_request",
+        "state": "open",
+        "pr_number": 205
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "frontend-eng → maria: PR #205 is merged and live on staging — the new tokens look great on the marketing pages. Ready to start migrating the app shell whenever you are.",
+      "days_ago": 2.1,
+      "url": "",
+      "metadata": {
+        "channel": "#eng-frontend"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "notion",
+      "content": "Checkout Accessibility Audit — Final Report (maria): Completed a full WCAG 2.1 AA audit of the checkout flow. Found 3 critical issues (contrast ratios, missing form labels, focus order) and 5 minor issues. Full report with screenshots attached.",
+      "days_ago": 21.0,
+      "url": "https://notion.so/checkout-a11y-audit-final",
+      "metadata": {
+        "type": "page_edit"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "maria in #design: Just finished the accessibility audit for checkout — found 3 critical contrast and labeling issues that need fixing before our next release. Filed tickets for engineering, report is in Notion.",
+      "days_ago": 18.5,
+      "url": "",
+      "metadata": {
+        "channel": "#design"
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "github",
+      "content": "PR #198 merged: 'fix: resolve checkout accessibility issues — contrast, labels, focus order' — Addresses all 3 critical findings from Maria's audit. Verified against WCAG 2.1 AA with axe-core.",
+      "days_ago": 15.2,
+      "url": "https://github.com/org/frontend/pull/198",
+      "metadata": {
+        "type": "pull_request",
+        "state": "merged",
+        "pr_number": 198
+      }
+    },
+    {
+      "user_id": "maria",
+      "source": "slack",
+      "content": "maria in #design: All 3 critical accessibility issues from the checkout audit are now resolved and verified — closing this out. Great turnaround from the eng team!",
+      "days_ago": 14.0,
+      "url": "",
+      "metadata": {
+        "channel": "#design"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "email",
+      "content": "From: jordan@company.com To: leadership@company.com — Sharing the draft Q3 roadmap for review ahead of next week's planning cycle. Two big items competing for the top slot: the onboarding redesign and the partner API scalability work. Would appreciate feedback by Friday so we can finalize priorities.",
+      "days_ago": 6.3,
+      "url": "",
+      "metadata": {
+        "from": "jordan",
+        "subject": "Q3 Roadmap — Draft for Review",
+        "to": "leadership"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "slack",
+      "content": "jordan in #leadership: Following up on the Q3 roadmap doc I sent — really need feedback by Friday on the onboarding-redesign vs partner-API-scalability prioritization call. Both teams are ready to start, just need direction.",
+      "days_ago": 4.8,
+      "url": "",
+      "metadata": {
+        "channel": "#leadership"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "email",
+      "content": "From: vp-product@company.com To: jordan@company.com — Thanks for putting this together. Before we lock priorities, I'd like to discuss both options in person — there's a customer commitment tied to the partner API work that might change the calculus. Can we grab 30 minutes this week?",
+      "days_ago": 3.0,
+      "url": "",
+      "metadata": {
+        "from": "VP Product",
+        "subject": "Re: Q3 Roadmap — Draft for Review"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "slack",
+      "content": "jordan in #leadership: Q3 roadmap is currently on hold pending an alignment discussion with the VP — there's a customer commitment that might shift our priorities. Will share the final roadmap as soon as that conversation happens.",
+      "days_ago": 1.2,
+      "url": "",
+      "metadata": {
+        "channel": "#leadership"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "calendar",
+      "content": "Meeting scheduled: 'Q3 Roadmap Alignment — Jordan & VP Product', 30 minutes. Agenda: resolve prioritization between onboarding redesign and partner API scalability work.",
+      "days_ago": 0.8,
+      "url": "",
+      "metadata": {
+        "type": "meeting",
+        "duration_minutes": 30
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "email",
+      "content": "From: support-lead@company.com To: jordan@company.com — Forwarding this month's top customer complaints for your roadmap input. Biggest themes seem to be around onboarding confusion and slow checkout — full ticket export attached.",
+      "days_ago": 7.1,
+      "url": "",
+      "metadata": {
+        "from": "support-lead",
+        "subject": "Monthly customer feedback digest"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "notion",
+      "content": "Customer Feedback Synthesis — Q3 (edited by jordan, ~70% complete): Categorized 140 support tickets into 5 themes. Top two by volume: onboarding confusion (38%) and checkout performance (24%). Still need: cross-reference with NPS survey comments before finalizing recommendations.",
+      "days_ago": 4.4,
+      "url": "https://notion.so/customer-feedback-synthesis-q3",
+      "metadata": {
+        "type": "page_edit",
+        "completion": 70
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "slack",
+      "content": "jordan → maria: For the feedback synthesis doc, onboarding confusion is by far the top complaint theme — wanted to get your take on whether this lines up with what you're seeing in the redesign research.",
+      "days_ago": 3.2,
+      "url": "",
+      "metadata": {
+        "channel": "dm-jordan-maria"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "notion",
+      "content": "Customer Feedback Synthesis — Q3 (edited by jordan): Added NPS survey cross-reference — onboarding confusion theme is corroborated, appears in 31% of detractor comments too. Recommendation section drafted, ready for review.",
+      "days_ago": 1.9,
+      "url": "https://notion.so/customer-feedback-synthesis-q3",
+      "metadata": {
+        "type": "page_edit",
+        "completion": 90
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "email",
+      "content": "From: vendor-sales@analyticsco.com To: jordan@company.com — Hi Jordan, sending over the renewal terms for our analytics platform contract — renewal date is approaching in 3 weeks. New pricing reflects a 12% increase due to expanded usage tiers.",
+      "days_ago": 25.0,
+      "url": "",
+      "metadata": {
+        "from": "AnalyticsCo",
+        "subject": "Contract Renewal — Analytics Platform"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "slack",
+      "content": "jordan → procurement: Got the renewal terms from AnalyticsCo — 12% price increase. Given our usage has grown a lot this year that's roughly in line, but want to push back and see if we can negotiate a smaller increase or get additional seats included.",
+      "days_ago": 22.0,
+      "url": "",
+      "metadata": {
+        "channel": "dm-jordan-procurement"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "email",
+      "content": "From: vendor-sales@analyticsco.com To: jordan@company.com — Following up on our call — we can offer a 7% increase instead of 12% if you commit to a 2-year term, plus 5 additional seats included at no extra cost. Let us know if that works.",
+      "days_ago": 18.5,
+      "url": "",
+      "metadata": {
+        "from": "AnalyticsCo",
+        "subject": "Re: Contract Renewal — Analytics Platform"
+      }
+    },
+    {
+      "user_id": "jordan",
+      "source": "slack",
+      "content": "jordan in #procurement: Quick update — the AnalyticsCo contract renewal is signed and finalized. Got the increase down to 7% with a 2-year term and 5 extra seats included. Closing this out.",
+      "days_ago": 16.0,
+      "url": "",
+      "metadata": {
+        "channel": "#procurement"
+      }
+    }
+  ]
+}

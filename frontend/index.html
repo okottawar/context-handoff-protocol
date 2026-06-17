@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Context Handoff Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ee;--surface:#fff;--ink:#0d0f12;--muted:#3a3d44;
+  --ghost:#7a7f8a;--border:#d6d1c8;--accent:#c94b2e;--accent-h:#e8623f;
+  --sidebar:240px;--r:8px;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono','Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--ink)}
+
+/*  Layout  */
+.shell{display:grid;grid-template-columns:var(--sidebar) 1fr 1fr;grid-template-rows:52px 1fr;height:100vh;overflow:hidden}
+.topbar{grid-column:1/-1;background:var(--ink);display:flex;align-items:center;padding:0 24px;gap:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.topbar-logo{font-family:var(--serif);font-size:18px;color:#f5f3ee;letter-spacing:-.02em}
+.topbar-logo em{color:var(--accent);font-style:italic}
+.topbar-tag{font-family:var(--mono);font-size:10px;color:#5a5f6a;letter-spacing:.1em;text-transform:uppercase}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+#provider-badge{font-family:var(--mono);font-size:10px;color:#5a5f6a;letter-spacing:.06em}
+.btn{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:4px;cursor:pointer;border:0.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#f5f3ee;letter-spacing:.04em;transition:background .15s}
+.btn:hover{background:rgba(255,255,255,.15)}
+.btn-accent{background:var(--accent);border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent-h);border-color:var(--accent-h)}
+
+/*  Sidebar  */
+.sidebar{border-right:0.5px solid var(--border);overflow-y:auto;background:var(--surface)}
+.sidebar-head{padding:20px 20px 12px;border-bottom:0.5px solid var(--border)}
+.sidebar-head h2{font-family:var(--serif);font-size:18px;margin-bottom:4px}
+.sidebar-head p{font-family:var(--mono);font-size:9px;color:var(--ghost);letter-spacing:.08em;text-transform:uppercase}
+.user-item{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;border-bottom:0.5px solid var(--border);transition:background .12s}
+.user-item:hover{background:var(--bg)}
+.user-item.active{background:var(--ink)}
+.user-item.active .user-name{color:#f5f3ee}
+.user-item.active .user-email{color:#5a5f6a}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:500;color:white;flex-shrink:0}
+.user-item.active .avatar{background:var(--accent)}
+.user-name{font-size:13px;font-weight:500;color:var(--ink)}
+.user-email{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+
+/*  Middle pane — Threads  */
+.pane{overflow-y:auto;padding:28px 28px}
+.pane-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.pane-head h3{font-family:var(--serif);font-size:26px}
+.pane-actions{display:flex;gap:8px}
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ghost);margin-bottom:12px}
+
+/* Thread cards */
+.thread-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.thread-card:hover{border-color:var(--ghost)}
+.thread-card.selected{border-color:var(--accent)}
+.tc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.tc-title{font-size:13px;font-weight:500;line-height:1.4}
+.status-badge{font-family:var(--mono);font-size:8.5px;padding:2px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0}
+.s-in_flight{background:#fef3e2;color:#92400e}
+.s-blocked{background:#fee2e2;color:#991b1b}
+.s-done{background:#dcfce7;color:#166534}
+.s-stale{background:#f3f4f6;color:#6b7280}
+.tc-body{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.tc-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.conf-wrap{display:flex;align-items:center;gap:6px}
+.conf-label{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+.conf-bar{width:48px;height:2.5px;background:var(--border);border-radius:2px}
+.conf-fill{height:100%;border-radius:2px}
+.conf-val{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+.infer-chip{font-family:var(--mono);font-size:8px;padding:1px 6px;background:#ede9fe;color:#4c1d95;border-radius:3px}
+.source-chips{display:flex;gap:4px}
+.src-chip{font-family:var(--mono);font-size:8px;padding:2px 6px;background:var(--bg);border:0.5px solid var(--border);border-radius:3px;color:var(--ghost)}
+.staleness-bar{height:2px;background:var(--border);border-radius:1px;margin-top:10px}
+.staleness-fill{height:100%;border-radius:1px;background:var(--accent)}
+
+/* Events list */
+.event-item{padding:10px 0;border-top:0.5px solid var(--border);display:grid;grid-template-columns:64px 1fr;gap:10px}
+.event-src{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.event-content{font-size:11.5px;color:var(--muted);line-height:1.55}
+.event-ts{font-family:var(--mono);font-size:9px;color:var(--ghost);margin-top:3px}
+
+/*  Right pane — Brief  */
+.brief-pane{border-left:0.5px solid var(--border);overflow-y:auto;padding:28px 28px;background:var(--surface)}
+.brief-head{margin-bottom:20px}
+.brief-head h3{font-family:var(--serif);font-size:26px;margin-bottom:6px}
+.brief-meta{font-family:var(--mono);font-size:9.5px;color:var(--ghost)}
+.brief-summary{font-size:14px;color:var(--muted);line-height:1.7;padding:16px 18px;background:var(--bg);border-radius:var(--r);border:0.5px solid var(--border);margin-bottom:20px}
+.brief-thread{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px}
+.bt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bt-title{font-size:13px;font-weight:500}
+.bt-row{display:grid;grid-template-columns:90px 1fr;gap:8px;margin-bottom:8px;font-size:12px}
+.bt-key{font-family:var(--mono);font-size:9.5px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;padding-top:1px}
+.bt-val{color:var(--muted);line-height:1.55}
+.bt-next{background:var(--surface);border:0.5px solid var(--border);border-radius:5px;padding:10px 12px;margin-top:10px}
+.bt-next-label{font-family:var(--mono);font-size:8.5px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.bt-next-text{font-size:12px;color:var(--ink);line-height:1.55}
+.critical-box{background:var(--ink);border-radius:var(--r);padding:16px 18px;margin-top:16px}
+.critical-label{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.critical-item{font-size:12px;color:#9a9fa8;padding:6px 0;border-top:0.5px solid rgba(255,255,255,.07);padding-left:14px;position:relative}
+.critical-item::before{content:"—";position:absolute;left:0;color:var(--accent)}
+
+/*  State helpers  */
+.empty{text-align:center;padding:60px 20px;color:var(--ghost)}
+.empty h4{font-family:var(--serif);font-size:22px;margin-bottom:8px;color:var(--muted)}
+.empty p{font-size:13px;line-height:1.6}
+.loading{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ghost);padding:20px 0}
+.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#f5f3ee;font-family:var(--mono);font-size:11px;padding:10px 18px;border-radius:6px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <span class="topbar-logo">Context <em>Handoff</em> Protocol</span>
+    <span class="topbar-tag">CHP v1.0</span>
+    <div class="topbar-right">
+      <span id="provider-badge">loading config…</span>
+      <button class="btn" onclick="loadDemoDataset()">&#9889; Load Demo Dataset</button>
+      <button class="btn btn-accent" onclick="runPipeline()">&#9654; Run Pipeline</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR: Users -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <h2>People</h2>
+      <p>Select to view context</p>
+    </div>
+    <div id="user-list"></div>
+  </aside>
+
+  <!-- MIDDLE PANE: Threads + Events -->
+  <main class="pane" id="middle-pane">
+    <div class="empty">
+      <h4>Select a person</h4>
+      <p>Choose a team member from the sidebar to view their in-flight work threads.</p>
+    </div>
+  </main>
+
+  <!-- RIGHT PANE: Handoff Brief -->
+  <aside class="brief-pane" id="brief-pane">
+    <div class="empty">
+      <h4>No brief yet</h4>
+      <p>Run the pipeline to generate a living handoff brief for the selected person.</p>
+    </div>
+  </aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+//  State 
+const API   = '';   // same origin
+let activeUser   = null;
+let activeThread = null;
+
+//  Utils 
+function toast(msg, dur = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function loading(html = 'Loading…') {
+  return `<div class="loading"><div class="spinner"></div>${html}</div>`;
+}
+
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, opts);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+//  Demo dataset 
+async function loadDemoDataset() {
+  try {
+    const info = await apiFetch('/api/demo/info');
+    if (!info.available) {
+      toast('No synthetic dataset found on the server.', 4000);
+      return;
+    }
+    toast(`Seeding ${info.users.length} users \u00b7 ${info.event_count} events…`, 4000);
+    await apiFetch('/api/demo/seed', { method: 'POST' });
+    await loadUsers();
+    toast('Running full pipeline for all demo users — this may take 30-90s…', 6000);
+    await apiFetch('/api/demo/run-all', { method: 'POST' });
+    setTimeout(() => {
+      toast('Pipeline running in background. Select a user, then refresh threads/brief.', 6000);
+      loadUsers();
+    }, 2000);
+  } catch(e) {
+    toast(`Demo load error: ${e.message}`, 5000);
+  }
+}
+
+//  Boot 
+async function boot() {
+  // Load provider config
+  try {
+    const cfg = await apiFetch('/api/config');
+    document.getElementById('provider-badge').textContent =
+      `embed: ${cfg.embedding.provider}/${cfg.embedding.model}  ·  llm: ${cfg.llm.provider}/${cfg.llm.model}`;
+  } catch(e) { console.warn('Config load failed', e); }
+
+  await loadUsers();
+}
+
+//  Users 
+async function loadUsers() {
+  const ul = document.getElementById('user-list');
+  ul.innerHTML = loading('Loading users…');
+  try {
+    const users = await apiFetch('/api/users');
+    if (!users.length) {
+      ul.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--ghost)">No users found.</div>';
+      return;
+    }
+    ul.innerHTML = users.map(u => `
+      <div class="user-item ${activeUser?.id === u.id ? 'active' : ''}"
+           onclick="selectUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">
+        <div class="avatar">${u.avatar || u.name.slice(0,2).toUpperCase()}</div>
+        <div>
+          <div class="user-name">${u.name}</div>
+          <div class="user-email">${u.email || u.id}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    ul.innerHTML = `<div style="padding:20px;color:var(--accent);font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+//  Select user 
+async function selectUser(user) {
+  activeUser   = user;
+  activeThread = null;
+  await loadUsers();                // refresh active state
+  await Promise.all([loadThreads(), loadBrief()]);
+}
+
+//  Threads 
+async function loadThreads() {
+  if (!activeUser) return;
+  const pane = document.getElementById('middle-pane');
+  pane.innerHTML = `
+    <div class="pane-head">
+      <h3>Threads <span style="font-family:var(--mono);font-size:14px;color:var(--ghost)">${activeUser.name}</span></h3>
+      <div class="pane-actions">
+        <button class="btn" onclick="loadThreads()">&#8635; Refresh</button>
+        <button class="btn btn-accent" onclick="runIngest()">&#8595; Ingest</button>
+        <button class="btn btn-accent" onclick="runCluster()">&#9670; Cluster</button>
+      </div>
+    </div>
+    ${loading('Loading threads…')}
+  `;
+  try {
+    const threads = await apiFetch(`/api/users/${activeUser.id}/threads`);
+    renderThreads(threads);
+  } catch(e) {
+    document.getElementById('middle-pane').insertAdjacentHTML('beforeend',
+      `<div style="color:var(--accent);font-size:12px">Error: ${e.message}</div>`);
+  }
+}
+
+function renderThreads(threads) {
+  const pane = document.getElementById('middle-pane');
+  const existing = pane.querySelector('.pane-head');
+
+  const section = document.createElement('div');
+
+  if (!threads.length) {
+    section.innerHTML = `
+      <div class="section-label">Work Threads</div>
+      <div class="empty" style="padding:40px 0">
+        <h4>No threads yet</h4>
+        <p>Click <strong>Ingest</strong> then <strong>Cluster</strong> to surface work threads.</p>
+      </div>`;
+  } else {
+    section.innerHTML = `<div class="section-label">${threads.length} work thread${threads.length!==1?'s':''} — sorted by urgency</div>`;
+    threads.forEach(t => {
+      const card = document.createElement('div');
+      card.className = `thread-card ${activeThread?.id === t.id ? 'selected' : ''}`;
+      card.innerHTML = threadCardHTML(t);
+      card.onclick = () => selectThread(t, card);
+      section.appendChild(card);
+    });
+  }
+
+  // Remove old content below the header
+  while (pane.children.length > 1) pane.removeChild(pane.lastChild);
+  pane.appendChild(section);
+}
+
+function threadCardHTML(t) {
+  const confPct = Math.round(t.confidence * 100);
+  const confColor = confPct >= 80 ? '#16a34a' : confPct >= 60 ? '#d97706' : '#dc2626';
+  const stalePct  = Math.min(100, Math.round(t.staleness_score * 100));
+  return `
+    <div class="tc-head">
+      <div class="tc-title">${t.title}</div>
+      <span class="status-badge s-${t.status}">${t.status.replace('_',' ')}</span>
+    </div>
+    ${t.blocker ? `<div class="tc-body">&#9888;&#xFE0E; ${t.blocker.slice(0,160)}…</div>` : ''}
+    <div class="tc-foot">
+      <div class="conf-wrap">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:${confPct}%;background:${confColor}"></div></div>
+        <span class="conf-val">${confPct}%</span>
+      </div>
+      ${t.inferred_count > 0 ? `<span class="infer-chip">${t.inferred_count} inferred</span>` : ''}
+      <span class="src-chip" style="margin-left:auto">${t.event_count} signals</span>
+    </div>
+    <div class="staleness-bar"><div class="staleness-fill" style="width:${stalePct}%"></div></div>
+  `;
+}
+
+async function selectThread(thread, card) {
+  activeThread = thread;
+  document.querySelectorAll('.thread-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  await loadEvents(thread.id);
+}
+
+async function loadEvents(threadId) {
+  const pane = document.getElementById('middle-pane');
+  // Remove old event section
+  const old = pane.querySelector('.event-section');
+  if (old) old.remove();
+
+  const section = document.createElement('div');
+  section.className = 'event-section';
+  section.innerHTML = loading('Loading signals…');
+  pane.appendChild(section);
+
+  try {
+    const events = await apiFetch(`/api/users/${activeUser.id}/events`);
+    const filtered = events.filter(e => e.thread_id === threadId);
+    if (!filtered.length) {
+      section.innerHTML = `<div class="section-label" style="margin-top:20px">No events in this thread yet.</div>`;
+      return;
+    }
+    section.innerHTML = `<div class="section-label" style="margin-top:20px">${filtered.length} raw signals</div>
+      ${filtered.map(e => `
+        <div class="event-item">
+          <div class="event-src">${e.source}</div>
+          <div>
+            <div class="event-content">${e.content}</div>
+            <div class="event-ts">${new Date(e.timestamp).toLocaleDateString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+        </div>
+      `).join('')}`;
+  } catch(err) {
+    section.innerHTML = `<div style="color:var(--accent);font-size:12px">Error: ${err.message}</div>`;
+  }
+}
+
+//  Brief 
+async function loadBrief() {
+  if (!activeUser) return;
+  const pane = document.getElementById('brief-pane');
+  pane.innerHTML = loading('Loading brief…');
+  try {
+    const brief = await apiFetch(`/api/users/${activeUser.id}/brief`);
+    if (!brief) {
+      pane.innerHTML = `
+        <div class="brief-head"><h3>Handoff Brief</h3></div>
+        <div class="empty">
+          <h4>No brief yet</h4>
+          <p>Click <strong>Run Pipeline</strong> to generate a handoff brief for ${activeUser.name}.</p>
+          <button class="btn btn-accent" style="margin-top:16px" onclick="runSynthesise()">&#9733; Generate Brief</button>
+        </div>`;
+      return;
+    }
+    renderBrief(brief);
+  } catch(e) {
+    pane.innerHTML = `<div style="color:var(--accent);font-size:12px;padding:20px">Error: ${e.message}</div>`;
+  }
+}
+
+function renderBrief(brief) {
+  const pane = document.getElementById('brief-pane');
+  const dt   = new Date(brief.generated_at).toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+  const threads = brief.threads || [];
+  const critical = [];
+  threads.forEach(t => { if (t.status === 'blocked' && t.title) critical.push(t.title); });
+
+  pane.innerHTML = `
+    <div class="brief-head">
+      <h3>Handoff Brief</h3>
+      <div class="brief-meta">Generated ${dt} · ${brief.llm_model || 'unknown model'}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn" onclick="loadBrief()">&#8635; Refresh</button>
+      <button class="btn btn-accent" onclick="runSynthesise()">&#9733; Regenerate</button>
+    </div>
+    ${brief.summary ? `<div class="brief-summary">${brief.summary}</div>` : ''}
+    <div class="section-label">${threads.length} threads</div>
+    ${threads.map(t => briefThreadHTML(t)).join('')}
+    ${critical.length ? `
+      <div class="critical-box">
+        <div class="critical-label">Critical handoff items</div>
+        ${critical.map(c => `<div class="critical-item">${c}</div>`).join('')}
+      </div>` : ''}
+  `;
+}
+
+function briefThreadHTML(t) {
+  const confPct = Math.round((t.confidence || 0) * 100);
+  const confColor = confPct >= 80 ? '#16a34a' : confPct >= 60 ? '#d97706' : '#dc2626';
+  const sources = (t.sources || []).map(s => `<span class="src-chip">${s}</span>`).join('');
+  return `
+    <div class="brief-thread">
+      <div class="bt-head">
+        <div class="bt-title">${t.title || 'Untitled thread'}</div>
+        <span class="status-badge s-${t.status || 'in_flight'}">${(t.status||'in_flight').replace('_',' ')}</span>
+      </div>
+      ${t.current_state ? `<div class="bt-row"><div class="bt-key">State</div><div class="bt-val">${t.current_state}</div></div>` : ''}
+      ${t.last_decision ? `<div class="bt-row"><div class="bt-key">Decision</div><div class="bt-val">${t.last_decision}</div></div>` : ''}
+      ${t.blocker ? `<div class="bt-row"><div class="bt-key">Blocker</div><div class="bt-val" style="color:#991b1b">${t.blocker}</div></div>` : ''}
+      ${t.next_action ? `
+        <div class="bt-next">
+          <div class="bt-next-label">Next action</div>
+          <div class="bt-next-text">${t.next_action}</div>
+        </div>` : ''}
+      <div class="tc-foot" style="margin-top:12px">
+        <div class="conf-wrap">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-bar"><div class="conf-fill" style="width:${confPct}%;background:${confColor}"></div></div>
+          <span class="conf-val">${confPct}%</span>
+        </div>
+        ${(t.inferred_count||0)>0 ? `<span class="infer-chip">${t.inferred_count} inferred</span>` : ''}
+        <div class="source-chips" style="margin-left:auto">${sources}</div>
+      </div>
+    </div>
+  `;
+}
+
+//  Pipeline actions 
+async function runPipeline() {
+  if (!activeUser) { toast('Select a user first'); return; }
+  toast(`Pipeline started for ${activeUser.name}…`, 4000);
+  try {
+    await apiFetch(`/api/users/${activeUser.id}/run`, { method: 'POST' });
+    toast('Pipeline running in background — refresh in ~30s');
+    setTimeout(() => { loadThreads(); loadBrief(); }, 3000);
+  } catch(e) { toast(`Error: ${e.message}`, 5000); }
+}
+
+async function runIngest() {
+  if (!activeUser) return;
+  const btn = document.querySelector('.pane-actions .btn-accent');
+  toast(`Ingesting signals for ${activeUser.name}…`, 5000);
+  try {
+    const r = await apiFetch(`/api/users/${activeUser.id}/ingest`, { method: 'POST' });
+    toast(`Ingested ${r.new} new signals (${r.fetched} fetched, ${r.skipped} skipped)`);
+    await loadThreads();
+  } catch(e) { toast(`Ingest error: ${e.message}`, 5000); }
+}
+
+async function runCluster() {
+  if (!activeUser) return;
+  toast(`Clustering for ${activeUser.name}…`, 5000);
+  try {
+    const r = await apiFetch(`/api/users/${activeUser.id}/cluster`, { method: 'POST' });
+    toast(`Created ${r.cluster.threads_created} thread(s)`);
+    await loadThreads();
+  } catch(e) { toast(`Cluster error: ${e.message}`, 5000); }
+}
+
+async function runSynthesise() {
+  if (!activeUser) return;
+  const pane = document.getElementById('brief-pane');
+  pane.innerHTML = loading('Generating brief with LLM…');
+  try {
+    const brief = await apiFetch(`/api/users/${activeUser.id}/synthesise`, { method: 'POST' });
+    renderBrief(brief);
+    toast('Brief generated');
+  } catch(e) {
+    pane.innerHTML = `<div style="color:var(--accent);padding:20px;font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+//  Init 
+boot();
+</script>
+</body>
+</html>

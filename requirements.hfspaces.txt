@@ -1,0 +1,38 @@
+#  CHP requirements for HuggingFace Spaces deployment 
+# Differences from local requirements.txt:
+#   + huggingface_hub   (for HF Inference API — LLM + embeddings)
+#   - slack-sdk         (optional; add back if you connect Slack)
+#   - PyGithub          (optional; add back if you connect GitHub)
+#   - torch CPU only    (saves ~1.5 GB vs default torch)
+
+# Web framework
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# Database
+sqlalchemy>=2.0.0
+aiosqlite>=0.20.0
+greenlet>=3.0.0
+
+# Embeddings — CPU-only torch to keep the image under 2 GB
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0+cpu
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+
+# Clustering
+hdbscan>=0.8.38
+scikit-learn>=1.4.0
+
+# HTTP client
+httpx>=0.27.0
+
+# HuggingFace Inference API (LLM + embeddings without a local server)
+huggingface_hub>=0.23.0
+
+# Config / utilities
+python-dotenv>=1.0.0
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+python-dateutil>=2.9.0
+anyio>=4.0.0
