@@ -16,7 +16,7 @@ greenlet>=3.0.0
 
 # Embeddings — CPU-only torch to keep the image under 2 GB
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch>=2.0.0+cpu
+torch>=2.0.0
 sentence-transformers>=3.0.0
 numpy>=1.26.0
 
